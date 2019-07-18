@@ -7,7 +7,7 @@ def generate_auth_token():
     """Generates an access token for the Looker API that can be passed in the required authorization header.
     These tokens expire in an hour"""
     data = {
-        'client_id': 'xxxxxx', # get client and secret
+        'client_id': 'xxxxxx', # get id client and secret
         'client_secret': 'xxxxxx'
     }
     auth_token = requests.post('https://xxxxx.looker.com:19999/api/3.1/login', data=data) # get company api url
