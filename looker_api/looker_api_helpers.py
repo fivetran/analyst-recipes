@@ -1,3 +1,5 @@
+# Copyright (C) 2019 Fivetran
+
 import requests
 import json
 
