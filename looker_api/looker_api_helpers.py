@@ -7,10 +7,10 @@ def generate_auth_token():
     """Generates an access token for the Looker API that can be passed in the authorization header.
     These tokens expire in an hour"""
     data = {
-        'client_id': 'BqZfjW3sPtdMn4TMFFS9',
-        'client_secret': 'RtQ6KZ7TW8gFnGHnW6sFqKTW'
+        'client_id': 'xxxxxx', # get id client and secret
+        'client_secret': 'xxxxxx'
     }
-    auth_token = requests.post('https://fivetran.looker.com:19999/api/3.1/login', data=data)
+    auth_token = requests.post('https://xxxxx.looker.com:19999/api/3.1/login', data=data) # get company api url
     return auth_token.json().get('access_token')
 
 
@@ -18,7 +18,7 @@ HEADERS = {
     'Authorization': 'token {}'.format(generate_auth_token())
 }
 
-URL = 'https://fivetran.looker.com:19999/api/3.1/'
+URL = 'https://xxxxxx.looker.com:19999/api/3.1/'
 
 
 def get_dashboard(dashboard_id):
