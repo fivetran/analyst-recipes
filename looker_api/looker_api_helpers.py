@@ -4,13 +4,13 @@ import requests
 import json
 
 def generate_auth_token():
-    """Generates an access token for the Looker API that can be passed in the required authorization header.
+    """Generates an access token for the Looker API that can be passed in the authorization header.
     These tokens expire in an hour"""
     data = {
-        'client_id': 'xxxxxx', # get id client and secret
-        'client_secret': 'xxxxxx'
+        'client_id': 'BqZfjW3sPtdMn4TMFFS9',
+        'client_secret': 'RtQ6KZ7TW8gFnGHnW6sFqKTW'
     }
-    auth_token = requests.post('https://xxxxx.looker.com:19999/api/3.1/login', data=data) # get company api url
+    auth_token = requests.post('https://fivetran.looker.com:19999/api/3.1/login', data=data)
     return auth_token.json().get('access_token')
 
 
@@ -22,36 +22,43 @@ URL = 'https://fivetran.looker.com:19999/api/3.1/'
 
 
 def get_dashboard(dashboard_id):
+    """Returns the dashboard object for the specified dashboard id"""
     dashboard = requests.get('{}dashboards/{}'.format(URL, dashboard_id), headers=HEADERS)
     return dashboard.json()
 
 
 def get_all_dashboards():
+    """Returns all the dashboards in the looker environment"""
     dashboards = requests.get(URL + 'dashboards', headers=HEADERS)
     return dashboards.json()
 
 
 def get_look(look_id):
+    """Returns the look object for the specified look id"""
     look = requests.get('{}looks/{}'.format(URL, look_id), headers=HEADERS)
     return look.json()
 
 
 def get_all_looks():
+    """Returns all the looks in the looker environment"""
     looks = requests.get(URL + 'looks', headers=HEADERS)
     return looks.json()
 
 
 def get_query(query_id):
+    """Returns the query object for the specified id"""
     query = requests.get('{}queries/{}'.format(URL, query_id), headers=HEADERS)
     return query.json()
 
 
 def get_merge_query(merge_query_id):
+    """Returns the merge query object for the specified id"""
     merge_query = requests.get(URL + 'merge_queries/{}'.format(merge_query_id), headers=HEADERS)
     return merge_query.json()
 
 
-def get_all_schedules_plans():
+def get_all_scheduled_plans():
+    """Returns all scheduled plans for all users in the looker environment"""
     scheduled_plans = requests.get('{}{}'.format(URL, "scheduled_plans"), headers=HEADERS, params={'all_users': 'true'})
     return scheduled_plans.json()
 
@@ -66,8 +73,7 @@ def get_user_id_mapping():
 
 
 def match_text(lookup_str, text_to_match, match_whole_text, case_sensitive=False):
-    """Checks to see if the lookup string matches the text_to_match either partially or exactly.
-    """
+    """Checks to see if the lookup string matches the text_to_match either partially or wholly."""
     if text_to_match and lookup_str:
         if case_sensitive:
             text_to_match = str(text_to_match)
@@ -102,7 +108,7 @@ def find_matching_text_in_query_fields(query, lookup_str, match_whole_text, case
 
 
 def find_matching_text_in_filter_fields(query, lookup_str, match_whole_text, case_sensitive=False):
-    """Loops through the list of filters in a query to check if the provided text matches either the filter field
+    """Loops through the list of filters in a query to check if the provided text matches the filter fields.
 
     Filters are stored as a dictionary in the query
     e.g. {'opportunities.created_date_quarter': 'this quarter'}
@@ -124,13 +130,12 @@ def find_matching_text_in_filter_fields(query, lookup_str, match_whole_text, cas
 
 
 def find_matching_text_in_filter_values(query, lookup_str, match_whole_text, case_sensitive=False):
-    """Loops through the list of filters in a query to check if the provided text matches either the filter value
+    """Loops through the list of filters in a query to check if the provided text matches the filter value.
 
     Filters are stored as a dictionary in the query
     e.g. {'opportunities.created_date_quarter': 'this quarter'}
 
     Args:
-
         query (dict): looker query
         lookup_str (str): text to match, e.g. "quarter"
         match_whole_text (boolean): if true, it will check if there's a match to the whole string
@@ -150,8 +155,8 @@ def find_matching_text_in_filter_expression(query, lookup_str, match_whole_text,
     """Checks the filter expression in a query to see if the lookup_str matches.
 
     Filter expression example: '${opportunities.created_fiscal_quarter} > ${accounts.created_date_fiscal_quarter}'
-    Args:
 
+    Args:
         query (dict): looker query
         lookup_str (str): text to match, e.g. "quarter"
         match_whole_text (boolean): if true, it will check if there's a match to the whole string
@@ -163,11 +168,7 @@ def find_matching_text_in_filter_expression(query, lookup_str, match_whole_text,
             return filter_expression
 
 
-# test_query = get_query(164570)
-# test_match = find_matching_text_in_filter_expression(test_query, 'quarter', False)
-# print("Hello")
-
-def find_matching_text_in_query_table_calcs(query, lookup_str, match_whole_text, case_sensitive=False):
+def find_matching_text_in_query_dynamic_fields(query, lookup_str, match_whole_text, case_sensitive=False):
     """Loops through the dynamic fields (table calculations, custom dimensions, custom measures) in a query and
     checks if the provided text input matches the field text partially or wholly
 
@@ -180,7 +181,7 @@ def find_matching_text_in_query_table_calcs(query, lookup_str, match_whole_text,
     query_dynamic_fields = query.get('dynamic_fields')
     matching_query_fields = []
     if query_dynamic_fields:
-        # dynamic fields which should be lists of dics are currently being returned as a string,
+        # dynamic fields which should be lists of dicts are currently being returned as a string,
         # need to transform the string to list
         if isinstance(query_dynamic_fields, str):
             query_dynamic_fields = json.loads(query_dynamic_fields)
@@ -190,13 +191,13 @@ def find_matching_text_in_query_table_calcs(query, lookup_str, match_whole_text,
                 label = dynamic_field.get('label')
                 if match_text(lookup_str, expression, match_whole_text, case_sensitive):
                     matching_query_fields.append({'label': label, 'expression': expression})
-        # should probably
     return matching_query_fields
 
 
-def find_matching_text_in_dashboard_filter_fields(dashboard_filters, lookup_str, match_whole_text, case_sensitive=False):
+def find_matching_text_in_dashboard_filter_fields(dashboard_filters, lookup_str, match_whole_text,
+                                                  case_sensitive=False):
     """Loops through the list of dashboard filters to see if the provided text matches the
-    dashboard filter dimension (field)
+    dashboard filter field.
 
     Args:
         dashboard_filters (list): list of dicts containing dashboard filters. E.g.
@@ -227,7 +228,8 @@ def find_matching_text_in_dashboard_filter_fields(dashboard_filters, lookup_str,
     return matching_filter_fields
 
 
-def find_matching_text_in_dashboard_filter_values(dashboard_filters, lookup_str, match_whole_text, case_sensitive=False):
+def find_matching_text_in_dashboard_filter_values(dashboard_filters, lookup_str, match_whole_text,
+                                                  case_sensitive=False):
     """Loops through the list of dashboard filters to see if the provided text matches the
     dashboard filter value (default value)
 
@@ -261,7 +263,7 @@ def find_matching_text_in_dashboard_filter_values(dashboard_filters, lookup_str,
 
 def parse_merge_queries(merge_result_id):
     """For a merge query, returns the list of fields used to merge the source queries,
-     the ids of the source queries and the table calculation expressions
+     the ids of the source queries and the table calculation expressions.
 
     Args:
         merge_result_id: merge result id of the dashboard element referencing a merge query
@@ -296,12 +298,11 @@ def parse_merge_queries(merge_result_id):
 
 
 def parse_looks():
-    """Parses looks and returns the associated query ids
-    """
+    """Parses looks and returns the associated query ids."""
     all_looks = get_all_looks()
     parsed_looks = []
     user_id_mapping = get_user_id_mapping()
-    for found_look in all_looks:  # [all_looks[88]]: #TODO REMOVE THE FILTER AFTER TESTING!
+    for found_look in all_looks:
         if not found_look.get('deleted'):
             look = get_look(found_look['id'])
             try:
@@ -418,7 +419,11 @@ def update_query(query, old_text, new_text):
 
 
 def create_new_query(query):
-    """Creates a new query in Looker from the input query dictionary"""
+    """Creates a new query in Looker.
+
+     Args:
+         query: dictionary with fields for new query objects. Should not contain read nly fields.
+     z"""
     headers = HEADERS
     headers['content-type'] = 'application/json'
     try:
@@ -441,6 +446,8 @@ def update_look_dashboard_element_query_id(element_type, element_id, new_query_i
 
     Args:
         element_type: looks or dashboard_elements
+        element_id: look or tile id
+        new_query_id: id of new query
 
     Returns the query id of the element it has updated.
     """
