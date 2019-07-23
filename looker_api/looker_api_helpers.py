@@ -337,10 +337,9 @@ def parse_dashboard_elements():
     all_dashboards = json.loads(requests.get(URL + 'dashboards', headers=HEADERS).text)
     parsed_dashboards = {"tiles": [], "merged_query_tiles": [], "dashboard_level_filters": []}
     user_id_mapping = get_user_id_mapping()
-    for dashboard in all_dashboards:  # [all_dashboards[67]]: #all_dashboards: #TODO FOR TESTING DELETE THIS!!!!!!!!!!!!!!!!!!!
+    for dashboard in all_dashboards:
         dashboard_id = dashboard['id']
-        dashboard_detail = json.loads(
-            requests.get('{}dashboards/{}'.format(URL, dashboard_id), headers=HEADERS).text)
+        dashboard_detail = get_dashboard(dashboard_id)
         if dashboard_detail.get('deleted') != None:
             if not dashboard_detail['deleted']:
                 try:
